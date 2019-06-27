@@ -11,3 +11,12 @@
 @interface TTExpandPhotosView : UIView
 
 @end
+
+@interface TTExpandPhotosViewTTT : UIView
+
+@end
+
+
+@interface TTExpandPhotosViewTEST ()
+
+@end
