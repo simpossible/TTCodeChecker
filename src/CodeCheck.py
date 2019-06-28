@@ -23,10 +23,10 @@ def classNameForOCInterFaceContent(content):
 
     return ""
 
-def parserOcFile(filepath):
-    f = open(filepath, "r")
-    fileContent = f.read()
-    pattern = re.compile("@interface .+?@end",re.DOTALL)
+
+#寻找类定义
+def dealFileContentForInterFace(fileContent,filepath):
+    pattern = re.compile("@interface .+?@end", re.DOTALL)
     result1 = pattern.findall(fileContent)
     for result in result1:
         className = classNameForOCInterFaceContent(result)
@@ -38,10 +38,48 @@ def parserOcFile(filepath):
                 existClas.appendOCInterFace(result)
             else:
                 cls = IOSClass.IOSClass(filepath)
-                allClassesDic[className]=cls
+                cls.name = className
+                allClassesDic[className] = cls
                 cls.appendOCInterFace(result)
         else:
-            print "未找到类名 路径：",filepath
+            print "未找到类名 路径：", filepath
+
+
+def classNameForOCImplementionContent(content):
+    pattern = re.compile("@implementation(.+?)[\n| ]")
+    result1 = pattern.findall(content)
+    if len(result1) != 0:
+        result = result1[0]
+        result = result.strip()
+        return result
+
+
+    return ""
+
+def dealFileContentForImplemention(fileContent,filepath):
+    pattern = re.compile("@implementation .+?@end", re.DOTALL)
+    result1 = pattern.findall(fileContent)
+    for result in result1:
+        className = classNameForOCImplementionContent(result)
+        if className != "":
+            print "classNameis:", className
+            existClas = allClassesDic.get(className)
+            if existClas:
+                existClas = allClassesDic[className]
+                existClas.appendOCImplemention(result)
+            else:
+                cls = IOSClass.IOSClass(filepath)
+                cls.name = className
+                allClassesDic[className] = cls
+                cls.appendOCImplemention(result)
+        else:
+            print "未找到类名 路径：", filepath
+
+def parserOcFile(filepath):
+    f = open(filepath, "r")
+    fileContent = f.read()
+    dealFileContentForInterFace(fileContent,filepath)
+    dealFileContentForImplemention(fileContent,filepath)
 
     f.close()
 
@@ -60,7 +98,7 @@ def loopFilesInPath(path):
             for file in files:
                 newpath = os.path.join(root, file)
                 kind = file_extension(file)
-                if kind == '.h' :
+                if kind == '.m' :
                     parserOcFile(newpath)
                 print "文件类型是:", kind
             for dir in dirs:

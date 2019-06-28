@@ -108,7 +108,7 @@
 
 @implementation TTExpandController
 
-- (void)viewDidLoad {
+-(void)viewDidLoad{
     [super viewDidLoad];
     
     self.edgesForExtendedLayout = UIRectEdgeAll;
