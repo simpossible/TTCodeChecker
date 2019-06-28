@@ -48,8 +48,6 @@ class OCProperty(object):
                 self.decorators.append(d)
 
     def appendProperty(self,pp):
-        if self.name == ' likeButton':
-            print "asd"
         self.pps.append(pp)
 
     def describe(self):
