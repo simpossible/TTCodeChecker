@@ -6,14 +6,17 @@ class OCProperty(object):
 
     def __init__(self):
         self.pps = []
+        self.decorators = []
 
     def initialWithContent(self,content):
         self.content = content
 
         self.type = self.getPropertyType(content)
         self.name = self.getPropertyName(content)
+        self.getAllDecorate(content)
         print "属性name is:",self.name
         print "属性type is:",self.type
+        print "修饰符是:",self.decorators
 
     #得到类名
     def getPropertyType(self, content):
@@ -36,6 +39,15 @@ class OCProperty(object):
             name = result1[0]
             name = name.strip('*')
             return name
+    def getAllDecorate(self,content):
+        pattern = re.compile("\((.+?)\)")
+        result1 = pattern.findall(content)
+        if len(result1) > 0:
+            name = result1[0]
+            decorators = name.split(',')
+            for de in decorators:
+                d = de.strip()
+                self.decorators.append(d)
 
     def appendProperty(self,pp):
         self.pps.append(pp)
