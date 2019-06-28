@@ -14,9 +14,6 @@ class OCProperty(object):
         self.type = self.getPropertyType(content)
         self.name = self.getPropertyName(content)
         self.getAllDecorate(content)
-        print "属性name is:",self.name
-        print "属性type is:",self.type
-        print "修饰符是:",self.decorators
 
     #得到类名
     def getPropertyType(self, content):
@@ -38,6 +35,7 @@ class OCProperty(object):
         if len(result1) > 0:
             name = result1[0]
             name = name.strip('*')
+            name = name.strip()
             return name
     def getAllDecorate(self,content):
         pattern = re.compile("\((.+?)\)")
@@ -50,8 +48,16 @@ class OCProperty(object):
                 self.decorators.append(d)
 
     def appendProperty(self,pp):
+        if self.name == ' likeButton':
+            print "asd"
         self.pps.append(pp)
 
+    def describe(self):
+        des = ""
+        des = des + self.name
+        for pp in self.pps:
+            des = des + pp.describe()
+        return des
 
 
 

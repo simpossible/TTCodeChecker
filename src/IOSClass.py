@@ -14,6 +14,7 @@ class IOSClass(object):
         self.ocContents = []
         self.ocPropertoes = {}
         self.ocMethods = {}
+        self.superClass = None
 
     # 处理声明
     def appendOCInterFace(self,content):
@@ -48,3 +49,22 @@ class IOSClass(object):
                     existMethod.appendMethod(method)
                 else:
                     self.ocMethods[method.name]=method
+
+
+
+    def describe(self):
+        if self.name:
+            des = ""
+            des = des + "\n 类名："
+            des = des + self.name
+            des = des + "\n 属性:\n"
+            for pp in self.ocPropertoes.values():
+                des = des + "\n"
+                des = des + pp.describe()
+            des = "\n" + des + "\n 方法：\n"
+            for me in self.ocMethods.values():
+                des = des + "\n"
+                des = des + me.name
+            return des
+        else:
+            return "None"

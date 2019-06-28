@@ -29,6 +29,5 @@ class OCMethod(object):
             else:
                 name = name.strip()
                 self.name = name
-            print "方法名是：", self.name
     def appendMethod(self,md):
         self.ocMethods.append(md)
