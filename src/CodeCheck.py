@@ -3,6 +3,7 @@
 import os
 import filetype
 import re
+import IOSClass
 scanDir = "/Users/liangjinfeng/dev/CodeAutoCheck/resources"
 
 
@@ -14,7 +15,13 @@ def classNameForOCInterFaceContent(content):
     pattern = re.compile("@interface(.+?)[:|\(]")
     result1 = pattern.findall(content)
     if len(result1) != 0:
-        return  result1[0]
+        pattern2 = re.compile("[^ ]+")
+        result = result1[0]
+        result2 = pattern2.findall(result)
+        if len(result2)>0:
+            return  result2[0]
+
+    return ""
 
 def parserOcFile(filepath):
     f = open(filepath, "r")
@@ -23,9 +30,20 @@ def parserOcFile(filepath):
     result1 = pattern.findall(fileContent)
     for result in result1:
         className = classNameForOCInterFaceContent(result)
-        print "classNameis:",className
+        if className != "":
+            print "classNameis:", className
+            existClas = allClassesDic.get(className)
+            if existClas:
+                existClas = allClassesDic[className]
+                existClas.appendOCInterFace(result)
+            else:
+                cls = IOSClass.IOSClass(filepath)
+                allClassesDic[className]=cls
+                cls.appendOCInterFace(result)
+        else:
+            print "未找到类名 路径：",filepath
+
     f.close()
-    os._exit(0)
 
 
 
@@ -52,7 +70,9 @@ def loopFilesInPath(path):
 
 
 
-try:
-    loopFilesInPath(scanDir)
-except BaseException ,e:
-    print "error is ",e
+# try:
+loopFilesInPath(scanDir)
+allclass = allClassesDic.keys()
+print "所有的类为:",allclass
+# except BaseException ,e:
+#     print "error is ",e
