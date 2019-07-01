@@ -12,7 +12,7 @@ class OCMethod(object):
         self.content = content
 
     def parseMethodNameForConten(self,content):
-        pattern = re.compile("(- {0,}\(.+?)\{")
+        pattern = re.compile("- {0,}\(.+?\)(.+?)\{")
         result1 = pattern.findall(content)
         if len(result1) > 0:
             name = result1[0]
