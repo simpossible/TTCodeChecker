@@ -173,11 +173,5 @@ class CodeCheck(object):
         print result
         return result
 
-
-
-
-
-check= CodeCheck()
-check.startCheck()
 # except BaseException ,e:
 #     print "error is ",e
