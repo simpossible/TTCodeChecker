@@ -26,8 +26,8 @@ class OCType(object):
 
     #是否是基础类型
     def isBaseType(self):
-        if self.type:
-            existType = OCBaseTypes.get(self.type)
+        if self.pureType:
+            existType = OCBaseTypes.get(self.pureType)
             if existType:
                 return True
         return False

@@ -170,6 +170,7 @@ class CodeCheck(object):
         allClassCount = len(allIosClass)
 
         result = s.substitute(allClassCount = allClassCount,ppc=ppstring,ccc=ccstring)
+        print result
         return result
 
 

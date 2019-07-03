@@ -19,7 +19,7 @@ class CodeChecker(object):
         result =[]
         for pp in cls.ocPropertoes.values():
             if not pp.type.isBaseType():#如果不是基础类型
-                if pp.type.isPointer and pp.haveAssignDecoretor():
+                if pp.type.isPointer and pp.haveAssignDecoretor() and (not pp.haveAssignReadOnly()):
                     result.append(cls.name +":"+pp.content)
 
 
