@@ -15,7 +15,7 @@ class CodeCheck(object):
         self.allClassesDic = {}
         self.scanDir = "/Users/liangjinfeng/dev/TT/ios"
         #黑名单 子目录
-        self.unScanDir = ["Pods"]
+        self.unScanDir = []
 
     #是否在黑名单
     def isInBlackDir(self,dir):
@@ -24,6 +24,9 @@ class CodeCheck(object):
             if dir.find(rdd)==0:
                 return True
         return False
+
+    def addBlackDir(self,black):
+        self.unScanDir.extend(black)
 
 
 #获取interfacecontent的类名
@@ -185,6 +188,7 @@ class CodeCheck(object):
         return result
 
 check = CodeCheck()
+check.addBlackDir(["Pods"])
 aa = check.startCheck()
 print  aa
 # except BaseException ,e:
