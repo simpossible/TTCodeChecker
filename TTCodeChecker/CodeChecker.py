@@ -2,9 +2,17 @@
 import IOSClass
 import OCType
 
-ocsupers = {"UIView":["removeFromSuperview","addSubview:"],
-            "UIControl":["removeFromSuperview","addSubview:"],
-            "UIViewController":["viewDidLayoutSubviews","viewWillAppear:","viewDidAppear:","viewWillDisappear:","viewDidDisappear:"]}
+ocsupers = {"UIView":["removeFromSuperview","addSubview:","drawRect:"],
+            "UIControl":["removeFromSuperview","addSubview:","drawRect:"],
+            "UITableViewCell":["removeFromSuperview","addSubview:","drawRect:"],
+            "UITableView":["removeFromSuperview","addSubview:","drawRect:"],
+            "UICollectionView":["removeFromSuperview","addSubview:","drawRect:"],
+            "UICollectionViewCell":["removeFromSuperview","addSubview:","drawRect:"],
+            "UIButton":["removeFromSuperview","addSubview:","drawRect:"],
+            "UILabel":["removeFromSuperview","addSubview:","drawRect:"],
+            "UITextView":["removeFromSuperview","addSubview:","drawRect:"],
+            "UITextField": ["removeFromSuperview", "addSubview:","drawRect:"],
+            "UIViewController":["viewDidLayoutSubviews","viewWillAppear:","viewDidAppear:","viewWillDisappear:","viewDidDisappear:","viewDidLoad"]}
 
 class CodeChecker(object):
 
