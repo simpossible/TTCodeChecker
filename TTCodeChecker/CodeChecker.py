@@ -2,16 +2,17 @@
 import IOSClass
 import OCType
 
-ocsupers = {"UIView":["removeFromSuperview","addSubview:","drawRect:"],
-            "UIControl":["removeFromSuperview","addSubview:","drawRect:"],
-            "UITableViewCell":["removeFromSuperview","addSubview:","drawRect:"],
-            "UITableView":["removeFromSuperview","addSubview:","drawRect:"],
-            "UICollectionView":["removeFromSuperview","addSubview:","drawRect:"],
-            "UICollectionViewCell":["removeFromSuperview","addSubview:","drawRect:"],
-            "UIButton":["removeFromSuperview","addSubview:","drawRect:"],
-            "UILabel":["removeFromSuperview","addSubview:","drawRect:"],
-            "UITextView":["removeFromSuperview","addSubview:","drawRect:"],
-            "UITextField": ["removeFromSuperview", "addSubview:","drawRect:"],
+ocviewLoads = ["removeFromSuperview","addSubview:","drawRect:","init","initWithFrame:","awakeFromNib","initWithStyle:reuseIdentifier:"]
+ocsupers = {"UIView":ocviewLoads,
+            "UIControl":ocviewLoads,
+            "UITableViewCell":ocviewLoads,
+            "UITableView":ocviewLoads,
+            "UICollectionView":ocviewLoads,
+            "UICollectionViewCell":ocviewLoads,
+            "UIButton":ocviewLoads,
+            "UILabel":ocviewLoads,
+            "UITextView":ocviewLoads,
+            "UITextField": ocviewLoads,
             "UIViewController":["viewDidLayoutSubviews","viewWillAppear:","viewDidAppear:","viewWillDisappear:","viewDidDisappear:","viewDidLoad"]}
 
 class CodeChecker(object):

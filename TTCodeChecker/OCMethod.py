@@ -31,8 +31,10 @@ class OCMethod(object):
         self.ocMethods.append(md)
 
     def haveOCSuperMethod(self):
+        patternP = re.compile(r"\:.*? ")
+        pname = re.sub(patternP, ":", self.content, count=0, flags=0)
         search = "[super "+self.name
-        if self.content.find(search)>=0:
+        if pname.find(search)>=0:
             return True
         else:
             return False
