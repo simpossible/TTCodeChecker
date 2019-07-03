@@ -9,16 +9,10 @@ ocsupers = {"UIView":["removeFromSuperview","addSubview:"],
 class CodeChecker(object):
 
     def checkIosClass(self,cls):
-        # ppCheck = self.checkIosProperty(cls)
-        # if len(ppCheck) > 0:
-        #     result = "类名: " + cls.name
-        #     result = result + "\n" + "属性检查"
-        #     for tip in ppCheck:
-        #         result = result + "\n" + "    " + tip
-        #     return result
+        result = ""
+        ppCheck = self.checkIosProperty(cls)
 
-        self.checkIosMethods(cls)
-        return ""
+        return result
 
 
     def checkIosProperty(self,cls):
@@ -26,12 +20,13 @@ class CodeChecker(object):
         for pp in cls.ocPropertoes.values():
             if not pp.type.isBaseType():#如果不是基础类型
                 if pp.type.isPointer and pp.haveAssignDecoretor():
-                    result.append(pp.content)
+                    result.append(cls.name +":"+pp.content)
 
 
         return result
 
     def checkIosMethods(self, cls):
+        result=[]
         superName = cls.baseClass().name
         allSuperClasses = ocsupers.keys()
         for superClass in allSuperClasses:
@@ -42,5 +37,6 @@ class CodeChecker(object):
                     if exist:
                         haveSuper = exist.haveOCSuperMethod()
                         if not haveSuper:
-                            print "没有啊：",superClass,"method:",aMethod
+                            result.append(cls.name+":"+aMethod)
 
+        return result

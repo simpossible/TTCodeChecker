@@ -5,7 +5,6 @@ import re
 
 class OCMethodParser(object):
     def __init__(self):
-        print "a"
         #代码块
         self.ocblocks = []
         self.curBlock = None

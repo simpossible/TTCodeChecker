@@ -39,10 +39,6 @@ class IOSClass(object):
     #处理方法
     def appendOCImplemention(self, content):
 
-
-        if self.name == "DevOpsView":
-            print "9999"
-
         zhushi = re.compile("//[^\r\n]*|/\*.*?\*/|@\".*?\"|@implementation.*?\n|@end", re.DOTALL)
         content = re.sub(zhushi, "", content, count=0, flags=0)
 

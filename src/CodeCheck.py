@@ -5,6 +5,7 @@ import filetype
 import re
 import IOSClass
 import CodeChecker
+from string import Template
 # scanDir = "/Users/liangjinfeng/dev/CodeAutoCheck/resources"
 # scanDir = "/Users/liangjinfeng/dev/TT/ios"
 
@@ -46,11 +47,7 @@ class CodeCheck(object):
         result1 = pattern.findall(fileContent)
         for result in result1:
             className = self.classNameForOCInterFaceContent(result)
-            if className == "UIControl":
-                print "--"
             superName = self.superClassNameForOCInterFaceContent(content=result)
-            if className == "VisitorTableViewController_visitorCell":
-                print "sad"
             supercls = None
             if superName != "" and superName:
                 existClas = self.allClassesDic.get(superName)
@@ -142,13 +139,41 @@ class CodeCheck(object):
         # try:
         self.loopFilesInPath(self.scanDir)
         allIosClass = self.allClassesDic.values()
-        for cls in allIosClass:
-            a = codeChecker.checkIosClass(cls)
-            if len(a)>0:
-                print a
 
+        ppCheck = []
+        clasCheck = []
+        for cls in allIosClass:
+            pp = codeChecker.checkIosProperty(cls)
+            ppCheck.extend(pp)
+            cc = codeChecker.checkIosMethods(cls)
+            clasCheck.extend(cc)
+
+
+        ppstring=""
+        for pps in ppCheck:
+            ppstring = ppstring + '\n'+pps
+
+        ccstring=""
+        for ccs in clasCheck:
+            ccstring = ccstring + '\n'+ccs
+
+        s = Template("""
+        检查类的个数为：$allClassCount
+        
+        -------------------属性合法性检查-----------------
+        $ppc
+        
+        -------------------重载合法性检查-----------------
+        $ccc
+        
+        """)
         allClassCount = len(allIosClass)
-        print "类的个数为：", allClassCount
+
+        result = s.substitute(allClassCount = allClassCount,ppc=ppstring,ccc=ccstring)
+        return result
+
+
+
 
 
 check= CodeCheck()
