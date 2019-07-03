@@ -18,6 +18,7 @@ class IOSClass(object):
         self.ocMethods = {}
         self.superClass = None
 
+
     # 处理声明
     def appendOCInterFace(self,content):
         self.ocContents.append(content)

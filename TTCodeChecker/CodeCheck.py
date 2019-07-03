@@ -14,6 +14,17 @@ class CodeCheck(object):
         self.allClasses = []
         self.allClassesDic = {}
         self.scanDir = "/Users/liangjinfeng/dev/TT/ios"
+        #黑名单 子目录
+        self.unScanDir = ["Pods"]
+
+    #是否在黑名单
+    def isInBlackDir(self,dir):
+        for dd in self.unScanDir:
+            rdd = self.scanDir+"/"+dd
+            if dir.find(rdd)==0:
+                return True
+        return False
+
 
 #获取interfacecontent的类名
     def classNameForOCInterFaceContent(self,content):
@@ -122,13 +133,14 @@ class CodeCheck(object):
         print "进入文件夹：", path
         for root, dirs, files in os.walk(self.scanDir, topdown=False):
             # 过滤文件夹
+            if self.isInBlackDir(root):
+                continue
+            print "---:",root
             for file in files:
                 newpath = os.path.join(root, file)
                 kind = self.file_extension(file)
                 if kind == '.m' or kind == ".h" or kind == ".mm":
                     self.parserOcFile(newpath)
-            for dir in dirs:
-                newpath = os.path.join(root, dir)
 
 
     def startCheck(self):
