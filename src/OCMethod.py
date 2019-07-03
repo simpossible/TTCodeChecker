@@ -17,8 +17,6 @@ class OCMethod(object):
         if len(result1) > 0:
             name = result1[0]
             name = name.strip('-')
-
-
             #解析方法名字
             patternP = re.compile(r"\:\(.+?\).+? ")
             if name.find(':')>=0:
@@ -31,3 +29,10 @@ class OCMethod(object):
                 self.name = name
     def appendMethod(self,md):
         self.ocMethods.append(md)
+
+    def haveOCSuperMethod(self):
+        search = "[super "+self.name
+        if self.content.find(search)>=0:
+            return True
+        else:
+            return False

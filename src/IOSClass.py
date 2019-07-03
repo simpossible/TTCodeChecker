@@ -3,6 +3,8 @@
 import OCProperty
 import  re
 import OCMethod
+import OCMethodParser
+
 
 class IOSClass(object):
 
@@ -37,19 +39,32 @@ class IOSClass(object):
     #处理方法
     def appendOCImplemention(self, content):
 
-        pattern = re.compile("(- {0,}\(.+?)(@end|- {0,}\(|#pra)",re.DOTALL)
-        result1 = pattern.findall(content)
-        if len(result1) > 0:
-            for cc in result1:
-                methodContent = cc[0]
-                method = OCMethod.OCMethod()
-                method.initialWithContent(methodContent)
-                existMethod = self.ocMethods.get(method.name)
-                if existMethod:
-                    existMethod.appendMethod(method)
-                else:
-                    self.ocMethods[method.name]=method
 
+        if self.name == "DevOpsView":
+            print "9999"
+
+        zhushi = re.compile("//[^\r\n]*|/\*.*?\*/|@\".*?\"|@implementation.*?\n|@end", re.DOTALL)
+        content = re.sub(zhushi, "", content, count=0, flags=0)
+
+        parser = OCMethodParser.OCMethodParser()
+        blocks = parser.parseString(content)
+
+        for block in blocks:
+            method = OCMethod.OCMethod()
+            method.initialWithContent(block)
+            existMethod = self.ocMethods.get(method.name)
+            if existMethod:
+                existMethod.appendMethod(method)
+            else:
+                self.ocMethods[method.name] = method
+
+
+
+    def baseClass(self):
+        if self.superClass:
+            return self.superClass.baseClass()
+        else:
+            return self
 
 
     def describe(self):
@@ -68,3 +83,6 @@ class IOSClass(object):
             return des
         else:
             return "None"
+
+    def getMethod(self,name):
+        return self.ocMethods.get(name)
