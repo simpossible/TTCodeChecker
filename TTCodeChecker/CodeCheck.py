@@ -187,9 +187,12 @@ class CodeCheck(object):
         print result
         return result
 
-# check = CodeCheck()
-# check.addBlackDir(["Pods"])
-# aa = check.startCheck()
-# print  aa
+if __name__ == '__main__':
+    check = CodeCheck()
+    check.addBlackDir(["Pods"])
+    aa = check.startCheck()
+    print  aa
+    # print(__name__)
+
 # except BaseException ,e:
 #     print "error is ",e
