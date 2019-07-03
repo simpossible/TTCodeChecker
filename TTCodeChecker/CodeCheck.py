@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 
 import os
-import filetype
 import re
 import IOSClass
 import CodeChecker
@@ -173,5 +172,8 @@ class CodeCheck(object):
         print result
         return result
 
+check = CodeCheck()
+aa = check.startCheck()
+print  aa
 # except BaseException ,e:
 #     print "error is ",e
