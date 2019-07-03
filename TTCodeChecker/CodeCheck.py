@@ -187,9 +187,9 @@ class CodeCheck(object):
         print result
         return result
 
-check = CodeCheck()
-check.addBlackDir(["Pods"])
-aa = check.startCheck()
-print  aa
+# check = CodeCheck()
+# check.addBlackDir(["Pods"])
+# aa = check.startCheck()
+# print  aa
 # except BaseException ,e:
 #     print "error is ",e
