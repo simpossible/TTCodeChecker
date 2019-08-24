@@ -108,6 +108,12 @@ class OCProperty(object):
                 return True
         return False
 
+    def haveDecoretor(self,deconame):
+        for des in self.decorators:
+            if des == deconame:
+                return True
+        return False
+
     def haveAssignReadOnly(self):
         for des in self.decorators:
             if des == "readonly":

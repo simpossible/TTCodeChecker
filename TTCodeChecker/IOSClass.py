@@ -83,3 +83,13 @@ class IOSClass(object):
 
     def getMethod(self,name):
         return self.ocMethods.get(name)
+
+
+    def doForMixKeyWords(self,map):
+        for ppname,pp in self.ocPropertoes.items():
+            print "检查属性",ppname
+            if pp.haveDecoretor("IBOutlet") and map.has_key(ppname):#如果是storyboard的东西
+                map.pop(pp.name) #移除这个属性的关键字
+                print "移除关键字:",pp.name,"\n"
+                if map.has_key(self.name):
+                    map.pop(self.name) #移除这个类的类名

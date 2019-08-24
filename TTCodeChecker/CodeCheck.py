@@ -135,6 +135,9 @@ class CodeCheck(object):
     def file_extension(self,path):
         return os.path.splitext(path)[1]
 
+    def file_name(self,path):
+        return os.path.splitext(path)[0]
+
     def loopFilesInPath(self,path):
         print "进入文件夹：", path
         swfitcount = 0
@@ -142,57 +145,112 @@ class CodeCheck(object):
             # 过滤文件夹
             if self.isInBlackDir(root):
                 continue
-            print "---:",root
             for file in files:
                 newpath = os.path.join(root, file)
                 kind = self.file_extension(file)
                 if kind == '.m' or kind == ".h" or kind == ".mm":
-                    # self.parserOcFile(newpath)
-                    continue
+                    self.parserOcFile(newpath)
                 elif kind == ".swift":
                     swfitcount = swfitcount + 1
-                    self.parseSwift(newpath)
-        print "hahaha" , swfitcount
-        print "as"
+                    # self.parseSwift(newpath)
 
-    def parseSwift(self,newPath):
+    #混淆
+    def loopMixFilesInPath(self, path,projectFiles):
+        print "进入文件夹：", path
+        swfitcount = 0
+        for root, dirs, files in os.walk(self.scanDir, topdown=False):
+            # 过滤文件夹
+            if self.isInBlackDir(root):
+                continue
+            print "---:", root
+            for file in files:
+                newpath = os.path.join(root, file)
+                kind = self.file_extension(file)
+                name = self.file_name(file)
+                types = [".m",".h",".mm",".c",".cpp",".h"]
+                if name =="MMWormholeSessionContextTransiting":
+                    print "--"
+                if projectFiles.has_key(name):#如果这个文件在工程目录中存在
+                    if kind in types:
+                        if name != "STCDefination":
+                            self.parseReplaceString(newpath)
+
+                # elif kind == ".swift":
+                #     swfitcount = swfitcount + 1
+                #     self.parseReplaceString(newpath)
+
+    #检查应该被移除的文件 xib 里面的
+    def loopCheckExtendFilesInPath(self, path,keyworkdMap):
+        print "进入文件夹：", path
+        for root, dirs, files in os.walk(self.scanDir, topdown=False):
+            # 过滤文件夹
+            if self.isInBlackDir(root):
+                continue
+            for file in files:
+                newpath = os.path.join(root, file)
+                kind = self.file_extension(file)
+                name = self.file_name(file)
+                if name =="MMWormholeSessionFileTransiting":
+                    print "--"
+                if kind == '.xib' or kind == "storyboard": #移除xib 相关的keyword
+                    if keyworkdMap.has_key(name):#统一不替换文件名字
+                        keyworkdMap.pop(name)
+
+
+
+
+    def parseReplaceString(self,newPath):
+        print "开始替换：",newPath
         f = open(newPath, "r+")
-        fileContent = f.read()
-        words = []
-        index = 0  # 遍历所有的字符
 
         allWords = ""
-        isInwords = False
-        word = ""
-        lenc = len(fileContent)
-        while index < lenc:  # 当index小于p的长度
-            curChar = fileContent[index]
-            index = index + 1
-            charindex = ord(curChar)
-            if curChar.isalpha() or curChar =='_' :
-                isInwords = True
-                word=word+curChar
-            else:
-                if curChar.isdigit() and isInwords:
+
+        fileContent = f.readline()
+        while len(fileContent) > 0:
+            index = 0  # 遍历所有的字符
+            isInwords = False
+            word = ""
+            lenc = len(fileContent)
+
+
+            if fileContent.startswith("#import") or fileContent.startswith("//"):
+                allWords = allWords + fileContent
+                fileContent = f.readline()
+                continue
+
+
+            while index < lenc:  # 当index小于p的长度
+                curChar = fileContent[index]
+                index = index + 1
+                charindex = ord(curChar)
+                if curChar.isalpha() or curChar == '_':
+                    isInwords = True
                     word = word + curChar
                 else:
-                    isInwords = False
-                    # if word == "dic":
-
-                    if self.swiftKeyword.has_key(word) and word != "dic":
-                        value = self.swiftKeyword[word]
-                        allWords = allWords + value  # 这里替换了字符
-                        allWords = allWords + curChar
+                    if curChar.isdigit() and isInwords:
+                        word = word + curChar
                     else:
-                        allWords = allWords + word
-                        allWords = allWords + curChar
-                    word = ""
+                        isInwords = False
+                        # if word == "dic":
 
-        print fileContent
-        print allWords
+                        if self.swiftKeyword.has_key(word) and word != "dic":
+                            value = self.swiftKeyword[word]
+                            allWords = allWords + value  # 这里替换了字符
+                            allWords = allWords + curChar
+                        else:
+                            allWords = allWords + word
+                            allWords = allWords + curChar
+                        word = ""
+            fileContent = f.readline()
+
+        allWords = allWords + "//mix by ibl \n"
+        # print fileContent
+        # print allWords
         f.seek(0)
+        f.truncate()
         f.write(allWords)
         f.close()
+        print "结束替换",newPath
 
 
     def startCheck(self):
@@ -235,6 +293,59 @@ class CodeCheck(object):
         result = s.substitute(allClassCount = allClassCount,ppc=ppstring,ccc=ccstring)
         return result
 
+    def startMix(self):
+
+        #解析工程有哪些类在编译中
+        projPath = "/Users/liangjinfeng/dev/TT/ios/TT-iOS/TT/TT.xcodeproj/project.pbxproj"
+        projectFiles = self.parseXcodeProj(projPath)
+
+        keyWordsMap = parseDefine("/Users/liangjinfeng/dev/TT/ios/TT-iOS/TT/STCDefination.h")
+        print "orgLen is ", len(keyWordsMap)
+        self.loopFilesInPath(self.scanDir)
+        allIosClass = self.allClassesDic.values()
+        for cls in allIosClass:
+            cls.doForMixKeyWords(keyWordsMap)
+
+        self.swiftKeyword = keyWordsMap
+        self.loopCheckExtendFilesInPath(self.scanDir,keyWordsMap)
+
+        self.writeFileMap("backUp.json",keyWordsMap)
+
+        #正式替换
+        self.loopMixFilesInPath(self.scanDir,projectFiles)
+
+    def writeFileMap(self,path,map):
+        f = open(path, "r+")
+        f.seek(0)
+        jsonstr = json.dumps(map)
+        f.write(jsonstr)
+        f.close
+
+    def parseXcodeProj(self,filepath):
+        f = open(filepath, "r")
+        fileContent = f.read()
+
+        map = {}
+        pattern = re.compile("/\*(.+?)\*/", re.DOTALL)
+        result1 = pattern.findall(fileContent)
+        if len(result1) > 0:
+            for content in result1:
+                if content.find("in Sources") >= 0:
+                    org = content
+                    content = content.strip("in Sources")
+                    content = content.strip(" ")
+                    array = content.split('.')
+                    if len(array) > 1:
+                        fileName = array[0]
+                        fileType = array[1]
+                        # if fileType == "m" or fileType == "mm" or fileType == "swift":
+                        map[fileName]=content
+
+                print content
+
+        f.close()
+        return map
+
 def parseDefine(filepath):
     f = open(filepath, "r")
     fileContent = f.read()
@@ -269,20 +380,23 @@ def loadFromJson(filepath):
 if __name__ == '__main__':
     check = CodeCheck()
 
-    keyWordsMap = parseDefine("/Users/liangjinfeng/dev/TT/ios/TT-iOS/TT/STCDefination.h")
+
 
     # keyWordsMap = loadFromJson("/Users/liangjinfeng/dev/TT/ios/TT-iOS/TT/confuse.json")
     # newkeymap = {}
     # for k,v in keyWordsMap.items():
     #     newkeymap[v]=k
-    check.swiftKeyword = keyWordsMap
+    # check.swiftKeyword = keyWordsMap
+
+
     #
     # print newkeymap
 
     check.scanDir = "/Users/liangjinfeng/dev/TT/ios/TT-iOS"
     check.addBlackDir(["Pods"])
-    aa = check.startCheck()
-    print  aa
+    # aa = check.startCheck()
+    check.startMix()
+    # print  aa
     # print(__name__)
 
 
