@@ -17,6 +17,7 @@ class IOSClass(object):
         self.ocPropertoes = {}
         self.ocMethods = {}
         self.superClass = None
+        self.isFromFrameWork = False
 
 
     # 处理声明
@@ -86,10 +87,59 @@ class IOSClass(object):
 
 
     def doForMixKeyWords(self,map):
-        for ppname,pp in self.ocPropertoes.items():
-            print "检查属性",ppname
-            if pp.haveDecoretor("IBOutlet") and map.has_key(ppname):#如果是storyboard的东西
-                map.pop(pp.name) #移除这个属性的关键字
-                print "移除关键字:",pp.name,"\n"
-                if map.has_key(self.name):
-                    map.pop(self.name) #移除这个类的类名
+
+        if self.isFromFrameWork:# 库文件里面用到的关键字都不要替换
+            if map.has_key(self.name):
+                map.pop(self.name)
+
+            #去掉所用到的属性
+            for ppname, pp in self.ocPropertoes.items():
+                if map.has_key(ppname):  # 如果是storyboard的东西
+                    map.pop(pp.name)  # 移除这个属性的关键字
+                    print "移除关键字:", pp.name, "\n"
+                    _ppname = "_" + pp.name
+                    if map.has_key(_ppname):
+                        map.pop(_ppname)
+
+                    orgPPname = pp.name
+                    orgPPname = self.firstUp(orgPPname)
+
+                    setname = "set" + orgPPname
+                    if map.has_key(setname):
+                        map.pop(setname)
+
+            for method,ocmehod in self.ocMethods.items(): #移除所用到的方法
+                first = ocmehod.firstName
+                if map.has_key(first):
+                    map.pop(first)
+
+
+        else:
+            for ppname, pp in self.ocPropertoes.items():
+                print "检查属性", ppname
+                if pp.haveDecoretor("IBOutlet") and map.has_key(ppname):  # 如果是storyboard的东西
+                    map.pop(pp.name)  # 移除这个属性的关键字
+                    print "移除关键字:", pp.name, "\n"
+                    _ppname = "_" + pp.name
+                    if map.has_key(_ppname):
+                        map.pop(_ppname)
+
+                    orgPPname = pp.name
+                    orgPPname = self.firstUp(orgPPname)
+
+                    setname = "set" + orgPPname
+                    if map.has_key(setname):
+                        map.pop(setname)
+
+                    if map.has_key(self.name):
+                        map.pop(self.name)  # 移除这个类的类名
+
+
+
+    def firstUp(self,string, lower_rest=False):
+        ''' 字符转换
+        :param string: 传入原始字符串
+        :param lower_rest: bool, 控制参数--是否将剩余字母都变为小写
+        :return: 改变后的字符
+        '''
+        return string[:1].upper() + (string[1:].lower() if lower_rest else string[1:])

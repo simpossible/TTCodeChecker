@@ -5,6 +5,7 @@ from string import Template
 class OCMethod(object):
     def __init__(self):
         self.name = ""
+        self.firstName = ""
         self.ocMethods = []
 
     def initialWithContent(self,content):
@@ -24,9 +25,13 @@ class OCMethod(object):
                 pname = re.sub(patternP, ":", name, count=0, flags=0)
                 pname = pname.strip()
                 self.name = pname
+                array = pname.split(":")
+                if len(array) > 0:
+                    self.firstName = array[0]
             else:
                 name = name.strip()
                 self.name = name
+                self.firstName = name
     def appendMethod(self,md):
         self.ocMethods.append(md)
 

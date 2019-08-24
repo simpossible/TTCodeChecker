@@ -19,6 +19,7 @@ class CodeCheck(object):
         self.unScanDir = []
 
         self.swiftKeyword = {}
+        self.thirdPartDir = []
 
     #是否在黑名单
     def isInBlackDir(self,dir):
@@ -61,6 +62,10 @@ class CodeCheck(object):
     def dealFileContentForInterFace(self,fileContent,filepath):
         pattern = re.compile("@interface .+?@end", re.DOTALL)
         result1 = pattern.findall(fileContent)
+        isFrameWork = False
+        if filepath.find("Pods/") >= 0 or filepath.find("/3rd/")>= 0:
+            isFrameWork = True
+
         for result in result1:
             className = self.classNameForOCInterFaceContent(result)
             superName = self.superClassNameForOCInterFaceContent(content=result)
@@ -88,6 +93,9 @@ class CodeCheck(object):
                     existClas = cls
                 if supercls:
                     existClas.superClass = supercls
+
+                if isFrameWork:#判断是否是库类型
+                    existClas.isFromFrameWork = True
 
 
             else:
@@ -143,8 +151,8 @@ class CodeCheck(object):
         swfitcount = 0
         for root, dirs, files in os.walk(self.scanDir, topdown=False):
             # 过滤文件夹
-            if self.isInBlackDir(root):
-                continue
+            # if self.isInBlackDir(root):
+            #     continue
             for file in files:
                 newpath = os.path.join(root, file)
                 kind = self.file_extension(file)
@@ -167,10 +175,13 @@ class CodeCheck(object):
                 newpath = os.path.join(root, file)
                 kind = self.file_extension(file)
                 name = self.file_name(file)
-                types = [".m",".h",".mm",".c",".cpp",".h"]
-                if name =="MMWormholeSessionContextTransiting":
+                types = [".m",".h",".mm",".c",".cpp",".h",".swift"]
+                if name == "CommonChannelServiceClient":
                     print "--"
-                if projectFiles.has_key(name):#如果这个文件在工程目录中存在
+
+                if newpath.find(".framework") > 0:
+                    print "库目录 不解析",newpath
+                if projectFiles.has_key(name) or kind == ".h":#如果这个文件在工程目录中存在
                     if kind in types:
                         if name != "STCDefination":
                             self.parseReplaceString(newpath)
@@ -184,15 +195,11 @@ class CodeCheck(object):
         print "进入文件夹：", path
         for root, dirs, files in os.walk(self.scanDir, topdown=False):
             # 过滤文件夹
-            if self.isInBlackDir(root):
-                continue
             for file in files:
                 newpath = os.path.join(root, file)
                 kind = self.file_extension(file)
                 name = self.file_name(file)
-                if name =="MMWormholeSessionFileTransiting":
-                    print "--"
-                if kind == '.xib' or kind == "storyboard": #移除xib 相关的keyword
+                if kind == '.xib' or kind == ".storyboard": #移除xib 相关的keyword
                     if keyworkdMap.has_key(name):#统一不替换文件名字
                         keyworkdMap.pop(name)
 
@@ -201,10 +208,13 @@ class CodeCheck(object):
 
     def parseReplaceString(self,newPath):
         print "开始替换：",newPath
+
+        isSwift = newPath.find(".swift") >= 0
+
         f = open(newPath, "r+")
 
         allWords = ""
-
+        word = ""
         fileContent = f.readline()
         while len(fileContent) > 0:
             index = 0  # 遍历所有的字符
@@ -218,6 +228,7 @@ class CodeCheck(object):
                 fileContent = f.readline()
                 continue
 
+            lastCharBeforWord = "" #要识别出来是否是小数点后面的单词
 
             while index < lenc:  # 当index小于p的长度
                 curChar = fileContent[index]
@@ -227,6 +238,9 @@ class CodeCheck(object):
                     isInwords = True
                     word = word + curChar
                 else:
+                    if not isInwords:
+                        lastCharBeforWord = curChar  # 记录单词前的符号是什么
+
                     if curChar.isdigit() and isInwords:
                         word = word + curChar
                     else:
@@ -235,14 +249,19 @@ class CodeCheck(object):
 
                         if self.swiftKeyword.has_key(word) and word != "dic":
                             value = self.swiftKeyword[word]
+                            if isSwift and lastCharBeforWord == '(': #如果是swift 并且 后面的单词
+                                value = self.firstLower(value)
                             allWords = allWords + value  # 这里替换了字符
                             allWords = allWords + curChar
                         else:
                             allWords = allWords + word
                             allWords = allWords + curChar
                         word = ""
+
+
             fileContent = f.readline()
 
+        allWords = allWords + word
         allWords = allWords + "//mix by ibl \n"
         # print fileContent
         # print allWords
@@ -252,6 +271,13 @@ class CodeCheck(object):
         f.close()
         print "结束替换",newPath
 
+    def firstLower(self,string):
+        ''' 字符转换
+        :param string: 传入原始字符串
+        :param lower_rest: bool, 控制参数--是否将剩余字母都变为小写
+        :return: 改变后的字符
+        '''
+        return string[:1].lower() + string[1:]
 
     def startCheck(self):
 
@@ -300,6 +326,25 @@ class CodeCheck(object):
         projectFiles = self.parseXcodeProj(projPath)
 
         keyWordsMap = parseDefine("/Users/liangjinfeng/dev/TT/ios/TT-iOS/TT/STCDefination.h")
+
+        excludePrefix = ["GPB"]
+
+        for pre in excludePrefix:
+            for k, v in keyWordsMap.items():
+                if k.startswith(pre):  # 不要GBP开头的类
+                    keyWordsMap.pop(k)
+
+        excludeWords = ["pow","Type","test","cmd"] #过滤掉系统c 函数
+
+        for exclude in excludeWords:
+            for k, v in keyWordsMap.items():
+                if k == exclude:  #
+                    keyWordsMap.pop(k)
+
+                if len(k) < 6:
+                    print "可能是系统函数",k,"--",v
+
+
         print "orgLen is ", len(keyWordsMap)
         self.loopFilesInPath(self.scanDir)
         allIosClass = self.allClassesDic.values()
@@ -394,6 +439,8 @@ if __name__ == '__main__':
 
     check.scanDir = "/Users/liangjinfeng/dev/TT/ios/TT-iOS"
     check.addBlackDir(["Pods"])
+    # check.thirdPartDir = ["",""]
+
     # aa = check.startCheck()
     check.startMix()
     # print  aa
