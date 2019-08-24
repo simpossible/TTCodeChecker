@@ -5,6 +5,7 @@ import re
 import IOSClass
 import CodeChecker
 from string import Template
+import json
 # scanDir = "/Users/liangjinfeng/dev/CodeAutoCheck/resources"
 # scanDir = "/Users/liangjinfeng/dev/TT/ios"
 
@@ -16,6 +17,8 @@ class CodeCheck(object):
         self.scanDir = "/Users/liangjinfeng/dev/TT/ios"
         #黑名单 子目录
         self.unScanDir = []
+
+        self.swiftKeyword = {}
 
     #是否在黑名单
     def isInBlackDir(self,dir):
@@ -134,6 +137,7 @@ class CodeCheck(object):
 
     def loopFilesInPath(self,path):
         print "进入文件夹：", path
+        swfitcount = 0
         for root, dirs, files in os.walk(self.scanDir, topdown=False):
             # 过滤文件夹
             if self.isInBlackDir(root):
@@ -143,7 +147,52 @@ class CodeCheck(object):
                 newpath = os.path.join(root, file)
                 kind = self.file_extension(file)
                 if kind == '.m' or kind == ".h" or kind == ".mm":
-                    self.parserOcFile(newpath)
+                    # self.parserOcFile(newpath)
+                    continue
+                elif kind == ".swift":
+                    swfitcount = swfitcount + 1
+                    self.parseSwift(newpath)
+        print "hahaha" , swfitcount
+        print "as"
+
+    def parseSwift(self,newPath):
+        f = open(newPath, "r+")
+        fileContent = f.read()
+        words = []
+        index = 0  # 遍历所有的字符
+
+        allWords = ""
+        isInwords = False
+        word = ""
+        lenc = len(fileContent)
+        while index < lenc:  # 当index小于p的长度
+            curChar = fileContent[index]
+            index = index + 1
+            charindex = ord(curChar)
+            if curChar.isalpha() or curChar =='_' :
+                isInwords = True
+                word=word+curChar
+            else:
+                if curChar.isdigit() and isInwords:
+                    word = word + curChar
+                else:
+                    isInwords = False
+                    # if word == "dic":
+
+                    if self.swiftKeyword.has_key(word) and word != "dic":
+                        value = self.swiftKeyword[word]
+                        allWords = allWords + value  # 这里替换了字符
+                        allWords = allWords + curChar
+                    else:
+                        allWords = allWords + word
+                        allWords = allWords + curChar
+                    word = ""
+
+        print fileContent
+        print allWords
+        f.seek(0)
+        f.write(allWords)
+        f.close()
 
 
     def startCheck(self):
@@ -184,15 +233,59 @@ class CodeCheck(object):
         allClassCount = len(allIosClass)
 
         result = s.substitute(allClassCount = allClassCount,ppc=ppstring,ccc=ccstring)
-        print result
         return result
+
+def parseDefine(filepath):
+    f = open(filepath, "r")
+    fileContent = f.read()
+
+    map = {}
+    pattern = re.compile("ifndef.+?endif",re.DOTALL)
+    result1 = pattern.findall(fileContent)
+    if len(result1) > 0 :
+        for content in result1:
+            pattern = re.compile("define(.+?)\n", re.DOTALL)
+            result2 = pattern.findall(content)
+            if len(result2) > 0:
+                keyvalue = result2[0]
+                array = keyvalue.split(' ')
+                if len(array) > 2:
+                    key = array[1]
+                    value = array[2]
+                    map[key]=value
+                    print "key is ",key,"value",value
+            print content
+
+    f.close()
+    return map
+
+def loadFromJson(filepath):
+    f = open(filepath, "r")
+    fileContent = f.read()
+    dic = json.loads(fileContent)
+    f.close()
+    return  dic
 
 if __name__ == '__main__':
     check = CodeCheck()
+
+    keyWordsMap = parseDefine("/Users/liangjinfeng/dev/TT/ios/TT-iOS/TT/STCDefination.h")
+
+    # keyWordsMap = loadFromJson("/Users/liangjinfeng/dev/TT/ios/TT-iOS/TT/confuse.json")
+    # newkeymap = {}
+    # for k,v in keyWordsMap.items():
+    #     newkeymap[v]=k
+    check.swiftKeyword = keyWordsMap
+    #
+    # print newkeymap
+
+    check.scanDir = "/Users/liangjinfeng/dev/TT/ios/TT-iOS"
     check.addBlackDir(["Pods"])
     aa = check.startCheck()
     print  aa
     # print(__name__)
+
+
 
 # except BaseException ,e:
 #     print "error is ",e
