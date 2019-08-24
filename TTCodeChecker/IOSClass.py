@@ -85,6 +85,11 @@ class IOSClass(object):
     def getMethod(self,name):
         return self.ocMethods.get(name)
 
+    def doForAppendProperties(self,map):
+        for ppname, pp in self.ocPropertoes.items():
+            if len(pp.name) > 0:
+                map[pp.name] = True
+                print  "oc 属性:",pp.name
 
     def doForMixKeyWords(self,map):
 

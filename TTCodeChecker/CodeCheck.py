@@ -20,6 +20,7 @@ class CodeCheck(object):
 
         self.swiftKeyword = {}
         self.thirdPartDir = []
+        self.allOcProperetys = {}
 
     #是否在黑名单
     def isInBlackDir(self,dir):
@@ -249,8 +250,12 @@ class CodeCheck(object):
 
                         if self.swiftKeyword.has_key(word) and word != "dic":
                             value = self.swiftKeyword[word]
-                            if isSwift and lastCharBeforWord == '(': #如果是swift 并且 后面的单词
-                                value = self.firstLower(value)
+
+                            if isSwift : #如果是swift 并且 后面的单词
+                                isOcPP = self.allOcProperetys.has_key(word)
+                                isFunc = curChar == '('
+                                if isOcPP or isFunc:
+                                    value = self.firstLower(value)
                             allWords = allWords + value  # 这里替换了字符
                             allWords = allWords + curChar
                         else:
@@ -345,11 +350,16 @@ class CodeCheck(object):
                     print "可能是系统函数",k,"--",v
 
 
+        allOcPropertys = {}
         print "orgLen is ", len(keyWordsMap)
         self.loopFilesInPath(self.scanDir)
         allIosClass = self.allClassesDic.values()
+
         for cls in allIosClass:
             cls.doForMixKeyWords(keyWordsMap)
+            cls.doForAppendProperties(allOcPropertys) #找到所有OC的属性名称
+
+        self.allOcProperetys = allOcPropertys
 
         self.swiftKeyword = keyWordsMap
         self.loopCheckExtendFilesInPath(self.scanDir,keyWordsMap)
@@ -393,27 +403,48 @@ class CodeCheck(object):
 
 def parseDefine(filepath):
     f = open(filepath, "r")
-    fileContent = f.read()
+    fileContent = f.readline()
 
-    map = {}
-    pattern = re.compile("ifndef.+?endif",re.DOTALL)
-    result1 = pattern.findall(fileContent)
-    if len(result1) > 0 :
-        for content in result1:
-            pattern = re.compile("define(.+?)\n", re.DOTALL)
-            result2 = pattern.findall(content)
-            if len(result2) > 0:
-                keyvalue = result2[0]
-                array = keyvalue.split(' ')
-                if len(array) > 2:
-                    key = array[1]
-                    value = array[2]
-                    map[key]=value
-                    print "key is ",key,"value",value
-            print content
+    notWords = {}
+    cmap = {}
+    while fileContent:
 
-    f.close()
-    return map
+        if fileContent.startswith("#define"):
+            content = fileContent.strip("#define")
+            array = content.split(" ")
+            if len(array) >= 3:
+                key = array[1]
+                value = array[2]
+                if key == value:
+                    notWords[key] = True
+                else:
+                    value = value.strip('\n')
+                    cmap[key] = value
+        fileContent = f.readline()
+
+    for k,v in cmap.items():
+        if notWords.has_key(k):
+            cmap.pop(k)
+
+
+    # pattern = re.compile("ifndef.+?endif",re.DOTALL)
+    # result1 = pattern.findall(fileContent)
+    # if len(result1) > 0 :
+    #     for content in result1:
+    #         pattern = re.compile("define(.+?)\n", re.DOTALL)
+    #         result2 = pattern.findall(content)
+    #         if len(result2) > 0:
+    #             keyvalue = result2[0]
+    #             array = keyvalue.split(' ')
+    #             if len(array) > 2:
+    #                 key = array[1]
+    #                 value = array[2]
+    #                 map[key]=value
+    #                 print "key is ",key,"value",value
+    #         print content
+    #
+    # f.close()
+    return cmap
 
 def loadFromJson(filepath):
     f = open(filepath, "r")
